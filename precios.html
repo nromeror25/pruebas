@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Medicamentos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="p-4">
+
+  <h2 class="mb-4">📊 Visualizador de Medicamentos</h2>
+
+  <!-- Cargar archivo -->
+  <input type="file" id="inputExcel" class="form-control mb-3" />
+
+  <!-- Filtro -->
+  <label class="form-label mt-3">Filtrar por ATC</label>
+  <select id="filtroATC" class="form-select mb-4">
+    <option value="">-- Seleccione --</option>
+  </select>
+
+  <!-- Contenedor de tabla -->
+  <table id="tablaMedicamentos" class="table table-striped table-bordered mt-3">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>CUM</th>
+        <th>Titular</th>
+        <th>Precio mínimo regulado</th>
+        <th>Precio nuevo</th>
+        <th>Mensaje</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let datos = [];
+
+    // Leer archivo Excel
+    document.getElementById("inputExcel").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        datos = XLSX.utils.sheet_to_json(sheet);
+
+        cargarOpcionesFiltro();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Cargar opciones únicas de descripcionatc
+    function cargarOpcionesFiltro() {
+      const filtro = document.getElementById("filtroATC");
+      filtro.innerHTML = `<option value="">-- Seleccione --</option>`;
+      const atcs = [...new Set(datos.map(d => d["descripcionatc"]))];
+      atcs.forEach(atc => {
+        if (atc) {
+          const opt = document.createElement("option");
+          opt.value = atc;
+          opt.textContent = atc;
+          filtro.appendChild(opt);
+        }
+      });
+    }
+
+    // Filtrar y mostrar tabla
+    document.getElementById("filtroATC").addEventListener("change", (event) => {
+      const valor = event.target.value;
+      const filtrados = valor ? datos.filter(d => d["descripcionatc"] === valor) : datos;
+      mostrarTabla(filtrados);
+    });
+
+    // Mostrar tabla
+    function mostrarTabla(lista) {
+      const tbody = document.querySelector("#tablaMedicamentos tbody");
+      tbody.innerHTML = "";
+
+      lista.forEach(d => {
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+          <td>${d["producto"]}</td>
+          <td>${d["CUM"]}</td>
+          <td>${d["titular"]}</td>
+          <td><input type="number" class="form-control precio-min" placeholder="Ingrese valor mínimo $" /></td>
+          <td><input type="number" class="form-control precio-nuevo" placeholder="Ingrese nuevo precio $" /></td>
+          <td class="mensaje"></td>
+        `;
+
+        // Capturar inputs
+        const inputMin = fila.querySelector(".precio-min");
+        const inputNuevo = fila.querySelector(".precio-nuevo");
+        const mensaje = fila.querySelector(".mensaje");
+
+        // Validación en tiempo real
+        inputNuevo.addEventListener("input", () => {
+          const minVal = parseFloat(inputMin.value);
+          const nuevoVal = parseFloat(inputNuevo.value);
+
+          if (!isNaN(minVal) && !isNaN(nuevoVal)) {
+            if (nuevoVal < minVal) {
+              mensaje.innerHTML = `<span class="text-danger">⚠️ El precio ingresado es menor al mínimo permitido</span>`;
+            } else {
+              mensaje.innerHTML = `<span class="text-success">✅ Precio válido</span>`;
+            }
+          } else {
+            mensaje.innerHTML = "";
+          }
+        });
+
+        tbody.appendChild(fila);
+      });
+    }
+  </script>
+</body>
+</html>
