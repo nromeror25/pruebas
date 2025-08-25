@@ -28,12 +28,14 @@
         <th>Titular</th>
         <th>Precio mínimo regulado</th>
         <th>Precio nuevo</th>
+        <th>Precio factura 1</th>
+        <th>Precio factura 2</th>
         <th>Mensaje</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
-
+<button id="btnExportar" class="btn btn-success mt-3">💾 Exportar a Excel</button>
   <script>
     let datos = [];
 
@@ -46,7 +48,6 @@
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         datos = XLSX.utils.sheet_to_json(sheet);
-
         cargarOpcionesFiltro();
       };
       reader.readAsArrayBuffer(file);
@@ -88,33 +89,90 @@
           <td>${d["titular"]}</td>
           <td><input type="number" class="form-control precio-min" placeholder="Ingrese valor mínimo $" /></td>
           <td><input type="number" class="form-control precio-nuevo" placeholder="Ingrese nuevo precio $" /></td>
+          <td><input type="number" class="form-control precio-factura1" placeholder="Precio factura 1 $" /></td>
+          <td><input type="number" class="form-control precio-factura2" placeholder="Precio factura 2 $" /></td>
           <td class="mensaje"></td>
         `;
 
         // Capturar inputs
         const inputMin = fila.querySelector(".precio-min");
         const inputNuevo = fila.querySelector(".precio-nuevo");
+        const inputFac1 = fila.querySelector(".precio-factura1");
+        const inputFac2 = fila.querySelector(".precio-factura2");
         const mensaje = fila.querySelector(".mensaje");
 
-        // Validación en tiempo real
-        inputNuevo.addEventListener("input", () => {
+        // Función para actualizar mensaje
+        function actualizarMensaje() {
           const minVal = parseFloat(inputMin.value);
           const nuevoVal = parseFloat(inputNuevo.value);
+          const fac1Val = parseFloat(inputFac1.value);
+          const fac2Val = parseFloat(inputFac2.value);
 
-          if (!isNaN(minVal) && !isNaN(nuevoVal)) {
-            if (nuevoVal < minVal) {
-              mensaje.innerHTML = `<span class="text-danger">⚠️ El precio ingresado es menor al mínimo permitido</span>`;
-            } else {
-              mensaje.innerHTML = `<span class="text-success">✅ Precio válido</span>`;
-            }
-          } else {
-            mensaje.innerHTML = "";
+          let mensajes = [];
+
+          if (!isNaN(nuevoVal) && !isNaN(minVal)) {
+            if (nuevoVal < minVal) mensajes.push(`⚠️ Precio nuevo < mínimo`);
           }
+
+          if (!isNaN(fac1Val) && !isNaN(minVal)) {
+            if (fac1Val < minVal) mensajes.push(`⚠️ Factura 1 < mínimo`);
+            else mensajes.push(`Factura 1 ↑ ${((fac1Val - minVal)/minVal*100).toFixed(2)}% vs mínimo`);
+          }
+
+          if (!isNaN(fac2Val) && !isNaN(minVal)) {
+            if (fac2Val < minVal) mensajes.push(`⚠️ Factura 2 < mínimo`);
+            else mensajes.push(`Factura 2 ↑ ${((fac2Val - minVal)/minVal*100).toFixed(2)}% vs mínimo`);
+          }
+
+          if (!isNaN(nuevoVal) && !isNaN(minVal) && nuevoVal >= minVal) mensajes.push("✅ Precio válido");
+
+          mensaje.innerHTML = mensajes.map(m => `<div>${m}</div>`).join("");
+        }
+
+        // Eventos en tiempo real
+        [inputNuevo, inputFac1, inputFac2, inputMin].forEach(input => {
+          input.addEventListener("input", actualizarMensaje);
         });
 
         tbody.appendChild(fila);
       });
     }
+
+// Exportar tabla a Excel
+document.getElementById("btnExportar").addEventListener("click", () => {
+  const filas = document.querySelectorAll("#tablaMedicamentos tbody tr");
+  const datosExport = [];
+
+  filas.forEach(fila => {
+    const producto = fila.children[0].textContent;
+    const cum = fila.children[1].textContent;
+    const titular = fila.children[2].textContent;
+    const precioMin = fila.querySelector(".precio-min").value;
+    const precioNuevo = fila.querySelector(".precio-nuevo").value;
+    const fac1 = fila.querySelector(".precio-factura1").value;
+    const fac2 = fila.querySelector(".precio-factura2").value;
+    const mensaje = fila.querySelector(".mensaje").textContent;
+
+    datosExport.push({
+      Producto: producto,
+      CUM: cum,
+      Titular: titular,
+      "Precio Mínimo": precioMin,
+      "Precio Nuevo": precioNuevo,
+      "Factura 1": fac1,
+      "Factura 2": fac2,
+      Mensaje: mensaje
+    });
+  });
+
+  const ws = XLSX.utils.json_to_sheet(datosExport);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Medicamentos");
+  XLSX.writeFile(wb, "Medicamentos_Export.xlsx");
+});
+
   </script>
 </body>
 </html>
+
+
