@@ -1,178 +1,704 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Medicamentos</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard Corporativo - Analizador de Firmas </title>
+
+<!-- Dependencias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#F4F6F8;
+  --primary:#005EB8;
+  --accent:#0072CE;
+  --success:#2CA58D;
+  --muted:#64748B;
+  --card:#FFFFFF;
+}
+/* (1) Base y modo oscuro */
+html,body{height:100%;margin:0;font-family:Inter,Arial;background:linear-gradient(180deg,#e8ecf1 0%,var(--bg)100%);color:#1e293b;}
+body.dark{background:linear-gradient(180deg,#0f1724 0%,#071026 100%);color:#e6eef8}
+body.dark .panel{background:#071a2b;color:#dbeafe}
+.app{max-width:1400px;margin:22px auto;padding:18px;display:grid;grid-template-columns:1fr 360px;gap:18px;}
+.header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding-bottom:8px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--primary));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}
+.title h1{margin:0;color:var(--primary);font-size:20px}
+.title p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+/* Panel estético */
+.panel{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.06);border:1px solid rgba(0,0,0,0.04)}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{background:linear-gradient(135deg,var(--accent),var(--primary));color:#fff;padding:8px 14px;border-radius:10px;border:none;cursor:pointer}
+.btn.secondary{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+.input-control{padding:8px 10px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px}
+.small{font-size:12px;color:var(--muted)}
+.badge{background:#EEF2FF;color:var(--primary);padding:6px 8px;border-radius:8px;font-weight:600;font-size:12px}
+
+/* KPIs */
+.kpis{display:flex;gap:12px;flex-wrap:wrap}
+.kpi-card{flex:0 0 180px;background:var(--card);border-radius:10px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.04);text-align:center;transition:transform .18s}
+.kpi-card:hover{transform:translateY(-6px)}
+.kpi-card h2{margin:0;font-size:20px;color:var(--primary)}
+.kpi-card p{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+/* Tables */
+.table-wrap{max-height:320px;overflow:auto;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card)}
+thead th{background:#F1F6FB;color:var(--primary);padding:8px;border-bottom:1px solid #E6EEF9;text-align:left}
+tbody td{padding:6px;border-bottom:1px solid #F1F5F9;color:#243b53}
+
+/* Sidebar registro */
+.sidebar{display:flex;flex-direction:column;gap:12px}
+.processed-list{background:var(--card);border-radius:10px;padding:10px;max-height:420px;overflow:auto}
+.processed-item{display:flex;justify-content:space-between;gap:8px;padding:8px;border-radius:8px;border:1px solid #EFF6FF;margin-bottom:8px;align-items:center}
+.processed-item .meta{font-size:12px;color:var(--muted)}
+
+/* Timeline */
+.timeline{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.timeline-item{display:flex;gap:12px;align-items:flex-start}
+.timeline-dot{width:12px;height:12px;border-radius:50%}
+.green{background:#2CA58D}
+.yellow{background:#FFB347}
+.red{background:#D14343}
+
+/* Filtros/search */
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+
+/* responsive pequeño */
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr; padding:12px}
+  .sidebar{order:3}
+}
+</style>
 </head>
-<body class="p-4">
+<body>
+<div class="app">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">AD</div>
+      <div class="title">
+        <h1>Analizador de Firmas </h1>
+        <p class="small">KPIs · Timeline · Filtros · Registro local (offline)</p>
+      </div>
+    </div>
 
-  <h2 class="mb-4">📊 Visualizador de Medicamentos</h2>
+    <div style="display:flex;gap:12px;align-items:center">
+      <!-- (1) Toggle Dark Mode -->
+      <label class="small" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input id="darkToggle" type="checkbox"/> Modo oscuro
+      </label>
 
-  <!-- Cargar archivo -->
-  <input type="file" id="inputExcel" class="form-control mb-3" />
+      <!-- export resumen PDF -->
+      <button id="exportSummaryPdfBtn" class="btn secondary">Exportar resumen (PDF)</button>
+    </div>
+  </div>
 
-  <!-- Filtro -->
-  <label class="form-label mt-3">Filtrar por ATC</label>
-  <select id="filtroATC" class="form-select mb-4">
-    <option value="">-- Seleccione --</option>
-  </select>
+  <!-- Columna principal -->
+  <div>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="controls">
+          <label style="cursor:pointer;padding:8px 12px;border-radius:8px;border:1px dashed #cbd5e1;background:#E8F0FF">
+            <input id="fileInput" type="file" accept="application/pdf" style="display:none" multiple />
+            📁 Cargar PDF
+          </label>
 
-  <!-- Contenedor de tabla -->
-  <table id="tablaMedicamentos" class="table table-striped table-bordered mt-3">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>CUM</th>
-        <th>Titular</th>
-        <th>Precio mínimo regulado</th>
-        <th>Precio nuevo</th>
-        <th>Precio factura 1</th>
-        <th>Precio factura 2</th>
-        <th>Mensaje</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-<button id="btnExportar" class="btn btn-success mt-3">💾 Exportar a Excel</button>
-  <script>
-    let datos = [];
+          <input id="inputCliente" type="text" placeholder="Cliente" class="input-control"/>
+          <input id="inputPais" type="text" placeholder="País" class="input-control"/>
+          <input id="inputCanal" type="text" placeholder="Canal" class="input-control"/>
+          <button id="processBtn" class="btn">Extraer</button>
+          <button id="reprocessBtn" class="btn secondary">Reprocesar (forzar)</button>
+          <button id="exportBtn" class="btn secondary">Exportar Excel</button>
+        </div>
 
-    // Leer archivo Excel
-    document.getElementById("inputExcel").addEventListener("change", (event) => {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        datos = XLSX.utils.sheet_to_json(sheet);
-        cargarOpcionesFiltro();
-      };
-      reader.readAsArrayBuffer(file);
+        <div style="text-align:right">
+          <div class="badge" id="processedCount">Procesados: 0</div>
+        </div>
+      </div>
+
+      <!-- (4) Filtros + búsqueda -->
+      <div class="filters">
+        <input id="globalSearch" class="input-control" placeholder="Buscar producto / código / cliente..." style="min-width:260px"/>
+        <select id="filterCliente" class="input-control"><option value="">Filtrar por cliente</option></select>
+        <select id="filterPais" class="input-control"><option value="">Filtrar por país</option></select>
+        <label class="small">Desde <input id="filterDesde" type="date" class="input-control" /></label>
+        <label class="small">Hasta <input id="filterHasta" type="date" class="input-control" /></label>
+        <button id="clearFilters" class="btn secondary">Limpiar filtros</button>
+      </div>
+    </div>
+
+    <!-- KPIs + Marketing KPIs -->
+    <div class="panel">
+      <h3>KPIs de Firma</h3>
+      <div id="kpiDiv" class="kpis" style="margin-top:12px"></div>
+
+      <!-- (2) Resumen narrativo -->
+      <div style="margin-top:12px">
+        <h4>Resumen ejecutivo</h4>
+        <div id="resumenDiv" class="small" style="padding:8px;border-radius:8px;background:#F8FAFC"></div>
+      </div>
+    </div>
+
+    <!-- Charts: monthly + donut -->
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:12px;margin-top:12px">
+      <div class="panel">
+        <h3>Procesos por mes</h3>
+        <canvas id="monthlyChart" style="max-height:240px"></canvas>
+      </div>
+
+      <div class="panel">
+        <h3>% tiempos de firma</h3>
+        <canvas id="doughnutChart" style="max-height:240px"></canvas>
+      </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="panel" style="margin-top:12px">
+      <h3>Datos extraídos (productos)</h3>
+      <div class="table-wrap">
+        <table id="pdfTable"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div class="panel">
+        <h3>Tabla de Firmas</h3>
+        <div class="table-wrap"><table id="firmasTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+
+      <div class="panel">
+        <h3>Tiempos entre Firmantes</h3>
+        <div class="table-wrap"><table id="tiemposTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="panel" style="margin-top:12px">
+      <h3>Timeline de firma (storytelling)</h3>
+      <div id="timelineDiv" class="timeline"></div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="panel">
+      <h3>PDFs procesados</h3>
+      <div class="processed-list" id="processedList"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="clearRegistryBtn" class="btn secondary">Eliminar todo</button>
+        <button id="refreshListBtn" class="btn">Refrescar</button>
+      </div>
+      <div class="small" style="margin-top:8px">Registro local (localStorage). Incluye tamaño del archivo y opción de re-procesar.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Tips para presentación</h3>
+      <ul class="small">
+        <li>Mostrar 3 KPIs principales en la slide: promedio, % <24h y volumen mensual.</li>
+        <li>Usar el timeline como demo interactiva en la reunión.</li>
+        <li>Exportar el resumen (PDF) y compartir por email con el equipo.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------------------------
+   Helper & config (editables)
+   ---------------------------
+   (A) Diccionario de productos: edita 'diccionarioProductos'
+   (B) Regex productos: 'productoRegex'
+   (C) Vigencia / cotizacion regex: 'vigenciaRegex', 'cotizacionRegex'
+   (D) Envios/firmas: 'envioRegex', 'firmaRegex'
+   (E) Nombre del export: en XLSX.writeFile(...)
+   --------------------------- */
+
+/* ---- Helpers ---- */
+function parseDateStr(s){
+  if(!s) return null;
+  let t = s.replace(/ GMT.*$/,'').replace(/\s+-\s+/,' ').trim();
+  const d = new Date(t);
+  if(!isNaN(d)) return d;
+  // intentar dd/mm/yyyy
+  const m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return new Date(`${m[3]}-${m[2]}-${m[1]}`);
+  return null;
+}
+function fmtDate(d){
+  return d ? new Date(d).toLocaleString() : '';
+}
+
+function renderTable(rows, table){
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  thead.innerHTML = '';
+  tbody.innerHTML = '';
+  if(!rows || !rows.length) return;
+  const headers = Object.keys(rows[0]);
+  thead.innerHTML = '<tr>' + headers.map(h=> `<th>${h}</th>`).join('') + '</tr>';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    headers.forEach(h=>{
+      const td = document.createElement('td');
+      const v = r[h];
+      td.textContent = (v instanceof Date) ? v.toLocaleString() : (v ?? '');
+      tr.appendChild(td);
     });
+    tbody.appendChild(tr);
+  });
+}
 
-    // Cargar opciones únicas de descripcionatc
-    function cargarOpcionesFiltro() {
-      const filtro = document.getElementById("filtroATC");
-      filtro.innerHTML = `<option value="">-- Seleccione --</option>`;
-      const atcs = [...new Set(datos.map(d => d["descripcionatc"]))];
-      atcs.forEach(atc => {
-        if (atc) {
-          const opt = document.createElement("option");
-          opt.value = atc;
-          opt.textContent = atc;
-          filtro.appendChild(opt);
-        }
-      });
-    }
+/* ---- Local registry ---- */
+const STORAGE_KEY = 'analizador_firmas_processed_v2';
+function readRegistry(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):[] }catch(e){ return [] } }
+function writeRegistry(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); updateProcessedUI(); }
+function updateProcessedUI(){
+  const list = readRegistry();
+  const container = document.getElementById('processedList');
+  container.innerHTML = '';
+  document.getElementById('processedCount').textContent = `Procesados: ${list.length}`;
+  if(list.length===0){ container.innerHTML = '<div class="small">No hay PDFs procesados todavía.</div>'; return; }
+  list.slice().reverse().forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'processed-item';
+    div.innerHTML = `
+      <div style="flex:1">
+        <div style="font-weight:600">${item.name}</div>
+        <div class="meta">Analizado: ${new Date(item.date).toLocaleString()} • Cotización: ${item.cotizacion || 'N/A'}</div>
+        <div class="meta">Tamaño: ${item.sizeHuman || ''} • Hash: ${item.hash.slice(0,8)}...</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <button class="btn secondary btn-view" data-hash="${item.hash}" style="font-size:12px;padding:6px 8px">Ver</button>
+        <button class="btn secondary btn-delete" data-hash="${item.hash}" style="font-size:12px;padding:6px 8px">Eliminar</button>
+        <button class="btn btn-reproc" data-hash="${item.hash}" style="font-size:12px;padding:6px 8px">Reprocesar</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
 
-    // Filtrar y mostrar tabla
-    document.getElementById("filtroATC").addEventListener("change", (event) => {
-      const valor = event.target.value;
-      const filtrados = valor ? datos.filter(d => d["descripcionatc"] === valor) : datos;
-      mostrarTabla(filtrados);
-    });
-
-    // Mostrar tabla
-    function mostrarTabla(lista) {
-      const tbody = document.querySelector("#tablaMedicamentos tbody");
-      tbody.innerHTML = "";
-
-      lista.forEach(d => {
-        const fila = document.createElement("tr");
-
-        fila.innerHTML = `
-          <td>${d["producto"]}</td>
-          <td>${d["CUM"]}</td>
-          <td>${d["titular"]}</td>
-          <td><input type="number" class="form-control precio-min" placeholder="Ingrese valor mínimo $" /></td>
-          <td><input type="number" class="form-control precio-nuevo" placeholder="Ingrese nuevo precio $" /></td>
-          <td><input type="number" class="form-control precio-factura1" placeholder="Precio factura 1 $" /></td>
-          <td><input type="number" class="form-control precio-factura2" placeholder="Precio factura 2 $" /></td>
-          <td class="mensaje"></td>
-        `;
-
-        // Capturar inputs
-        const inputMin = fila.querySelector(".precio-min");
-        const inputNuevo = fila.querySelector(".precio-nuevo");
-        const inputFac1 = fila.querySelector(".precio-factura1");
-        const inputFac2 = fila.querySelector(".precio-factura2");
-        const mensaje = fila.querySelector(".mensaje");
-
-        // Función para actualizar mensaje
-        function actualizarMensaje() {
-          const minVal = parseFloat(inputMin.value);
-          const nuevoVal = parseFloat(inputNuevo.value);
-          const fac1Val = parseFloat(inputFac1.value);
-          const fac2Val = parseFloat(inputFac2.value);
-
-          let mensajes = [];
-
-          if (!isNaN(nuevoVal) && !isNaN(minVal)) {
-            if (nuevoVal < minVal) mensajes.push(`⚠️ Precio nuevo < mínimo`);
-          }
-
-          if (!isNaN(fac1Val) && !isNaN(minVal)) {
-            if (fac1Val < minVal) mensajes.push(`⚠️ Factura 1 < mínimo`);
-            else mensajes.push(`Factura 1 ↑ ${((fac1Val - minVal)/minVal*100).toFixed(2)}% vs mínimo`);
-          }
-
-          if (!isNaN(fac2Val) && !isNaN(minVal)) {
-            if (fac2Val < minVal) mensajes.push(`⚠️ Factura 2 < mínimo`);
-            else mensajes.push(`Factura 2 ↑ ${((fac2Val - minVal)/minVal*100).toFixed(2)}% vs mínimo`);
-          }
-
-          if (!isNaN(nuevoVal) && !isNaN(minVal) && nuevoVal >= minVal) mensajes.push("✅ Precio válido");
-
-          mensaje.innerHTML = mensajes.map(m => `<div>${m}</div>`).join("");
-        }
-
-        // Eventos en tiempo real
-        [inputNuevo, inputFac1, inputFac2, inputMin].forEach(input => {
-          input.addEventListener("input", actualizarMensaje);
-        });
-
-        tbody.appendChild(fila);
-      });
-    }
-
-// Exportar tabla a Excel
-document.getElementById("btnExportar").addEventListener("click", () => {
-  const filas = document.querySelectorAll("#tablaMedicamentos tbody tr");
-  const datosExport = [];
-
-  filas.forEach(fila => {
-    const producto = fila.children[0].textContent;
-    const cum = fila.children[1].textContent;
-    const titular = fila.children[2].textContent;
-    const precioMin = fila.querySelector(".precio-min").value;
-    const precioNuevo = fila.querySelector(".precio-nuevo").value;
-    const fac1 = fila.querySelector(".precio-factura1").value;
-    const fac2 = fila.querySelector(".precio-factura2").value;
-    const mensaje = fila.querySelector(".mensaje").textContent;
-
-    datosExport.push({
-      Producto: producto,
-      CUM: cum,
-      Titular: titular,
-      "Precio Mínimo": precioMin,
-      "Precio Nuevo": precioNuevo,
-      "Factura 1": fac1,
-      "Factura 2": fac2,
-      Mensaje: mensaje
+  container.querySelectorAll('.btn-delete').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      const hash = ev.currentTarget.dataset.hash;
+      if(!confirm('Eliminar este registro?')) return;
+      const newList = readRegistry().filter(i=>i.hash!==hash);
+      writeRegistry(newList);
     });
   });
 
-  const ws = XLSX.utils.json_to_sheet(datosExport);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Medicamentos");
-  XLSX.writeFile(wb, "Medicamentos_Export.xlsx");
+  container.querySelectorAll('.btn-view').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      const hash = ev.currentTarget.dataset.hash;
+      const item = readRegistry().find(i=>i.hash===hash);
+      if(!item) return alert('Registro no encontrado');
+      alert(`PDF: ${item.name}\nAnalizado: ${new Date(item.date).toLocaleString()}\nCotización: ${item.cotizacion || 'N/A'}\nTamaño: ${item.sizeHuman || 'N/A'}`);
+    });
+  });
+
+  container.querySelectorAll('.btn-reproc').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      const hash = ev.currentTarget.dataset.hash;
+      const item = readRegistry().find(i=>i.hash===hash);
+      if(!item) return alert('Registro no encontrado');
+      // desencadena una "re-procesar" cargando el archivo desde input si se proporciona
+      alert('Para re-procesar: vuelve a cargar manualmente el mismo archivo PDF y presiona "Reprocesar (forzar)".');
+    });
+  });
+}
+
+/* ---- Hash ---- */
+async function hashFile(arrayBuffer){
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function humanFileSize(bytes){
+  if(bytes===0) return '0 B';
+  const i = Math.floor(Math.log(bytes)/Math.log(1024));
+  const sizes = ['B','KB','MB','GB','TB'];
+  return (bytes/Math.pow(1024,i)).toFixed(2) + ' ' + sizes[i];
+}
+
+/* ---- PDF extraction ---- */
+async function extractTextFromPDFBytes(pdfData){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({data:pdfData}).promise;
+  let textContent = '';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page = await pdf.getPage(i);
+    const txt = await page.getTextContent();
+    textContent += txt.items.map(item=>item.str).join(' ') + ' ';
+  }
+  return textContent;
+}
+
+/* ---- (A) Diccionario productos ---- */
+const diccionarioProductos = {
+  "3004944702":"ASTONIN H 0.1 MG FRASCO X 50 TABLETAS",
+  "CO103982":"CILOSTAL 100 MG CAJA X 30 TABLETAS",
+  "CO103981":"CILOSTAL 50 MG CAJA X 30 TABLETAS"
+};
+
+/* ---- Globals ---- */
+let pdfRows = [], firmaRows = [], envios = {}, tiempoChart=null, monthlyChart=null, doughnutChart=null;let registry = JSON.parse(localStorage.getItem('pdfRegistry')) || []; // ✅ solo aquí
+
+/* ---- DOM helpers para filtros (poblar selects) ---- */
+function populateFilterOptions(){
+  const clientes = Array.from(new Set(pdfRows.map(r=>r.Cliente))).filter(Boolean);
+  const paises = Array.from(new Set(pdfRows.map(r=>r.País))).filter(Boolean);
+  const selC = document.getElementById('filterCliente');
+  const selP = document.getElementById('filterPais');
+  selC.innerHTML = '<option value="">Filtrar por cliente</option>';
+  selP.innerHTML = '<option value="">Filtrar por país</option>';
+  clientes.forEach(c=> selC.innerHTML += `<option value="${c}">${c}</option>`);
+  paises.forEach(p=> selP.innerHTML += `<option value="${p}">${p}</option>`);
+}
+
+/* ---- Procesar: click ---- */
+document.getElementById('processBtn').addEventListener('click', ()=>processFiles(false));
+document.getElementById('reprocessBtn').addEventListener('click', ()=>processFiles(true));
+
+async function processFiles(force=false){
+  const files = Array.from(document.getElementById('fileInput').files);
+  if(!files.length) return alert('Selecciona al menos un PDF');
+  for(const file of files){
+    // leer bytes
+    const arrayBuffer = await file.arrayBuffer();
+    const fileHash = await hashFile(arrayBuffer);
+   
+    // si existe y no es force -> skip
+    if(!force && registry.some(r=>r.hash===fileHash)){
+      alert(`El archivo "${file.name}" ya fue procesado. Usa 'Reprocesar (forzar)' para re-análisis.`);
+      continue;
+    }
+    // extraer texto
+    let rawText = await extractTextFromPDFBytes(new Uint8Array(arrayBuffer));
+    rawText = rawText.replace(/\s{2,}/g,' ').replace(/\r/g,' ').replace(/\n/g,' ');
+    rawText = rawText.replace(/\$[\s]?([\d\.]+),?(\d{0,2})/g,(m,intPart,decPart)=>'$'+intPart.replace(/\./g,'')+(decPart?'.'+decPart:''));
+    console.log(rawText);
+
+    // (B) regex productos (ajusta según tu PDF)
+    const productoRegex = /\b([A-Z0-9]{5,12})\b\s+(.+?)\s+(\d+)\s+\$(\d+)\s+\$(\d+)/g;
+
+    // (C) vigencia & cotizacion
+    const vigenciaRegex = /De:\s*(\d{1,2}\/\d{1,2}\/\d{4})\s*hasta\s*(\d{1,2}\/\d{1,2}\/\d{4})/g;
+    const cotizacionRegex = /COTIZACION N\.? ([A-Z0-9\-]+)/i;
+
+    const vigencias=[];
+    let m;
+    while((m=vigenciaRegex.exec(rawText))!==null) vigencias.push({fechaInicial:m[1],fechaFinal:m[2]});
+    const cotMatch = cotizacionRegex.exec(rawText);
+    const cotizacion = cotMatch?cotMatch[1]:'N/A';
+    const vig = { fechaInicial: vigencias.length?vigencias[0].fechaInicial:'N/A', fechaFinal: vigencias.length?vigencias[0].fechaFinal:'N/A' };
+
+    // reiniciar arrays para este archivo (si force quisieras acumular, cambia lógica)
+    // aquí acumulamos globalmente para todos los archivos cargados en esta sesión
+    // si quieres limpiar antes de procesar cada archivo, haz pdfRows=[] etc.
+    const cliente = document.getElementById('inputCliente').value || "NACIONAL";
+    const pais = document.getElementById('inputPais').value || "N/A";
+    const canal = document.getElementById('inputCanal').value || "INSTITUCIONAL";
+
+    // extraer productos
+    while((m=productoRegex.exec(rawText))!==null){
+      const [full, sku, nombre, cantidad, precioUnitario, precioTotal] = m;
+      if(sku.includes('-')) continue;
+      const nombreNorm = diccionarioProductos[sku] || nombre.trim();
+      pdfRows.push({
+        'País': pais,
+        'Cliente': cliente,
+        'Canal': canal,
+        'Vigencia Inicial': vig.fechaInicial,
+        'Vigencia Final': vig.fechaFinal,
+        'Código': sku,
+        'Nombre': nombreNorm,
+        'Cantidad': cantidad,
+        'Precio Unitario': precioUnitario,
+        'Precio Presentación': precioTotal,
+        'Cotización': cotizacion,
+        'Archivo': file.name
+      });
+    }
+
+    // (D) envios / firmas regex (ajusta si tu texto está en español u otro formato)
+    const envioRegex = /Document emailed to (.+?) \((.+?)\) for signature (\d{4}-\d{2}-\d{2} - \d{1,2}:\d{2}:\d{2} [AP]M(?: [A-Z\/+\-0-9]+)?)/g;
+    const firmaRegex = /Document e-signed by (.+?) \((.+?)\) Signature Date: (\d{4}-\d{2}-\d{2} - \d{1,2}:\d{2}:\d{2} [AP]M(?: [A-Z\/+\-0-9]+)?)/g;
+
+    // recolectar envios
+    while((m=envioRegex.exec(rawText))!==null){
+      const nombreEnv = m[1].trim(), emailEnv = m[2].trim();
+      const fechaEnvio = parseDateStr(m[3]);
+      if(emailEnv) envios[emailEnv] = { nombre: nombreEnv, fechaEnvio };
+    }
+
+    // recolectar firmas
+    while((m=firmaRegex.exec(rawText))!==null){
+      const nombreF = m[1].trim(), emailF = m[2].trim(), fechaFirma = parseDateStr(m[3]);
+      const infoEnv = envios[emailF];
+      const fechaEnvio = infoEnv ? infoEnv.fechaEnvio : null;
+      const tiempo = (fechaEnvio && fechaFirma) ? ((fechaFirma - fechaEnvio)/3600000).toFixed(2) : '';
+      firmaRows.push({
+        'Nombre': nombreF,
+        'Email': emailF,
+        'Fecha Envío': fechaEnvio,
+        'Fecha Firma': fechaFirma,
+        'Tiempo (hrs)': tiempo,
+        'Archivo': file.name
+      });
+    }
+
+    // actualizar registro local (size + human)
+    
+    const newRecord = { name: file.name, hash: fileHash, date: new Date().toISOString(), cotizacion, size: file.size, sizeHuman: humanFileSize(file.size) };
+    // si force, reemplaza registro existente
+    const existsIdx = registry.findIndex(r=>r.hash===fileHash);
+    if(existsIdx>=0) registry[existsIdx]=newRecord; else registry.push(newRecord);
+    writeRegistry(registry);
+
+    alert(`Archivo procesado: ${file.name}`);
+  } // end for files
+
+  // después de procesar todos los archivos: renderizar todo
+  renderAll();
+}
+
+/* ---- renderAll: tablas + KPIs + charts + timeline + filtros ---- */
+function renderAll(){
+  renderTable(pdfRows, document.getElementById('pdfTable'));
+  renderTable(firmaRows, document.getElementById('firmasTable'));
+
+  // tiempos entre firmas
+  const firmasOrdenadas = [...firmaRows].sort((a,b)=> (a['Fecha Firma']||0) - (b['Fecha Firma']||0));
+  const tiemposEntreFirmas = [];
+  for(let i=1;i<firmasOrdenadas.length;i++){
+    const anterior = firmasOrdenadas[i-1], actual = firmasOrdenadas[i];
+    const diffHrs = (actual['Fecha Firma'] - anterior['Fecha Firma'])/3600000;
+    tiemposEntreFirmas.push({ 'Desde': anterior['Nombre'], 'Hasta': actual['Nombre'], 'Horas transcurridas': diffHrs.toFixed(2) });
+  }
+  renderTable(tiemposEntreFirmas, document.getElementById('tiemposTable'));
+
+  renderKPIs();
+  renderResumen();
+  renderCharts();
+  renderTimeline();
+  populateFilterOptions();
+}
+
+/* ---- (2) KPIs y resumen ---- */
+function renderKPIs() {
+  const kpiDiv = document.getElementById('kpiDiv'); 
+  kpiDiv.innerHTML = '';
+
+  // Calcular tiempos para otros KPIs
+  const tiempos = firmaRows.map(f => parseFloat(f['Tiempo (hrs)'])).filter(v => !isNaN(v));
+  const uniqueFirmas = [...new Set(firmaRows.map(f => f.Email))];
+  const totalEnvios = Object.keys(envios).length || 1;
+  const totalFirmasUnicas = uniqueFirmas.length;
+  const avgTiempo = tiempos.length ? (tiempos.reduce((a, b) => a + b, 0) / tiempos.length).toFixed(2) : 0;
+
+  // Semaforización de la fecha final del PDF
+  const fechasFinales = pdfRows.map(row => new Date(row['Vigencia Final'])); // Asegúrate de que esta propiedad exista
+  const fechaFinalPDF = fechasFinales.length ? new Date(Math.max(...fechasFinales)) : null; // Obtener la fecha más reciente
+
+  let semaforoColor = '';
+  if (fechaFinalPDF) {
+    const diffTime = fechaFinalPDF - new Date();
+    const diffDays = diffTime / (1000 * 3600 * 24); // Convertir a días
+
+    if (diffDays < 30) {
+      semaforoColor = 'red'; // Menos de un mes
+    } else if (diffDays < 90) {
+      semaforoColor = 'yellow'; // Entre uno y tres meses
+    } else {
+      semaforoColor = 'green'; // Más de tres meses
+    }
+  }
+
+  // Crear KPI para la semaforización
+  const semaforoDiv = document.createElement('div');
+  semaforoDiv.className = 'kpi-card';
+  semaforoDiv.style.backgroundColor = semaforoColor; // Cambiar el color de fondo
+  semaforoDiv.innerHTML = `<h2>${fechaFinalPDF ? fechaFinalPDF.toLocaleDateString() : 'N/A'}</h2><p>Fecha Final del PDF</p>`;
+  kpiDiv.appendChild(semaforoDiv);
+
+  // KPIs adicionales
+  const kpis = [
+    { title: "Tiempo promedio (hrs)", value: avgTiempo },
+    { title: "% Firmas completadas", value: ((totalFirmasUnicas / totalEnvios) * 100).toFixed(1) + "%" },
+    { title: "Total productos", value: pdfRows.length }
+  ];
+
+  kpis.forEach(k => {
+    const div = document.createElement('div'); 
+    div.className = 'kpi-card';
+    div.innerHTML = `<h2>${k.value}</h2><p>${k.title}</p>`;
+    kpiDiv.appendChild(div);
+  });
+}
+
+
+function renderResumen(){
+  const total = pdfRows.length;
+  const tiempos = firmaRows.map(f=>parseFloat(f['Tiempo (hrs)'])).filter(v=>!isNaN(v));
+  const avg = tiempos.length ? (tiempos.reduce((a,b)=>a+b,0)/tiempos.length).toFixed(2) : 'N/A';
+  // pct <24, <48, >72
+  const pct24 = ((tiempos.filter(t=>t<24).length / (tiempos.length||1))*100).toFixed(1);
+  const pct48 = ((tiempos.filter(t=>t>=24 && t<48).length / (tiempos.length||1))*100).toFixed(1);
+  const pct72 = ((tiempos.filter(t=>t>=48).length / (tiempos.length||1))*100).toFixed(1);
+  const texto = `Se procesaron ${total} productos. Tiempo promedio de firma: ${avg} hrs. ${pct24}% firmaron en <24h, ${pct48}% entre 24-48h y ${pct72}% tardaron más de 48h.`;
+  document.getElementById('resumenDiv').textContent = texto;
+}
+
+/* ---- (3) Charts: monthly + doughnut ---- */
+function renderCharts(){
+  // monthly: usar registry dates
+  
+  const months = {};
+  registry.forEach(r=>{
+    const d = new Date(r.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months[key] = (months[key]||0)+1;
+  });
+  const labels = Object.keys(months).sort();
+  const data = labels.map(l=>months[l]);
+
+  const ctxM = document.getElementById('monthlyChart').getContext('2d');
+  if(monthlyChart) monthlyChart.destroy();
+  monthlyChart = new Chart(ctxM, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Procesados por mes', data, backgroundColor:'#0072ce' }] },
+    options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+
+  // doughnut: pct <24 / 24-48 / >48
+  const tiempos = firmaRows.map(f=>parseFloat(f['Tiempo (hrs)'])).filter(v=>!isNaN(v));
+  const c24 = tiempos.filter(t=>t<24).length;
+  const c48 = tiempos.filter(t=>t>=24 && t<48).length;
+  const c72 = tiempos.filter(t=>t>=48).length;
+  const ctxD = document.getElementById('doughnutChart').getContext('2d');
+  if(doughnutChart) doughnutChart.destroy();
+  doughnutChart = new Chart(ctxD, {
+    type:'doughnut',
+    data:{ labels:['<24h','24-48h','>48h'], datasets:[{data:[c24,c48,c72], backgroundColor:['#2CA58D','#FFB347','#D14343']}] },
+    options:{responsive:true}
+  });
+}
+
+/* ---- (5) Timeline ---- */
+function renderTimeline(){
+  const container = document.getElementById('timelineDiv'); container.innerHTML='';
+  // para cada archivo, mostrar secuencia de firmas por fecha
+  const groupedByFile = {};
+  firmaRows.forEach(f=>{ if(!groupedByFile[f.Archivo]) groupedByFile[f.Archivo]=[]; groupedByFile[f.Archivo].push(f); });
+  Object.entries(groupedByFile).forEach(([file, arr])=>{
+    const wrap = document.createElement('div'); wrap.style.padding='8px'; wrap.style.border='1px solid #EEF2FF'; wrap.style.borderRadius='8px'; wrap.style.marginBottom='8px';
+    wrap.innerHTML = `<div style="font-weight:600;margin-bottom:6px">${file}</div>`;
+    const sorted = arr.sort((a,b)=> (a['Fecha Firma']||0) - (b['Fecha Firma']||0));
+    sorted.forEach(s=>{
+      const hrs = parseFloat(s['Tiempo (hrs)']) || 9999;
+      const colorClass = hrs < 24 ? 'green' : hrs < 48 ? 'yellow' : 'red';
+      const div = document.createElement('div'); div.className='timeline-item';
+      div.innerHTML = `<div class="timeline-dot ${colorClass}"></div><div><div style="font-weight:600">${s.Nombre}</div><div class="small">Firma: ${fmtDate(s['Fecha Firma'])} • Tiempo: ${s['Tiempo (hrs)'] || 'N/A'} hrs</div></div>`;
+      wrap.appendChild(div);
+    });
+    container.appendChild(wrap);
+  });
+}
+
+/* ---- (4) filtros y búsqueda ---- */
+document.getElementById('globalSearch').addEventListener('input', applyFilters);
+document.getElementById('filterCliente').addEventListener('change', applyFilters);
+document.getElementById('filterPais').addEventListener('change', applyFilters);
+document.getElementById('filterDesde').addEventListener('change', applyFilters);
+document.getElementById('filterHasta').addEventListener('change', applyFilters);
+document.getElementById('clearFilters').addEventListener('click', ()=>{
+  document.getElementById('globalSearch').value=''; document.getElementById('filterCliente').value=''; document.getElementById('filterPais').value=''; document.getElementById('filterDesde').value=''; document.getElementById('filterHasta').value=''; applyFilters();
 });
 
-  </script>
+function applyFilters(){
+  const q = document.getElementById('globalSearch').value.trim().toLowerCase();
+  const fc = document.getElementById('filterCliente').value;
+  const fp = document.getElementById('filterPais').value;
+  const desde = document.getElementById('filterDesde').value ? new Date(document.getElementById('filterDesde').value) : null;
+  const hasta = document.getElementById('filterHasta').value ? new Date(document.getElementById('filterHasta').value) : null;
+
+  const filtered = pdfRows.filter(r=>{
+    if(fc && r.Cliente !== fc) return false;
+    if(fp && r.País !== fp) return false;
+    if(desde){
+      const vi = r['Vigencia Inicial'] && r['Vigencia Inicial'].match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(vi){ const d = new Date(`${vi[3]}-${vi[2]}-${vi[1]}`); if(d < desde) return false; }
+    }
+    if(hasta){
+      const vf = r['Vigencia Final'] && r['Vigencia Final'].match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(vf){ const d = new Date(`${vf[3]}-${vf[2]}-${vf[1]}`); if(d > hasta) return false; }
+    }
+    if(q){
+      const s = Object.values(r).join(' ').toLowerCase();
+      if(!s.includes(q)) return false;
+    }
+    return true;
+  });
+
+  renderTable(filtered, document.getElementById('pdfTable'));
+}
+
+/* ---- Exportar Excel ---- */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(!pdfRows.length && !firmaRows.length){ alert('No hay datos para exportar.'); return; }
+  const wb = XLSX.utils.book_new();
+  if(pdfRows.length){ const ws = XLSX.utils.json_to_sheet(pdfRows); XLSX.utils.book_append_sheet(wb, ws, 'Productos'); }
+  if(firmaRows.length){ const ws2 = XLSX.utils.json_to_sheet(firmaRows); XLSX.utils.book_append_sheet(wb, ws2, 'Firmas'); }
+  XLSX.writeFile(wb, 'Reporte_Firmas_Marketing.xlsx');
+});
+
+/* ---- Exportar resumen a PDF (jsPDF) (7) ---- */
+document.getElementById('exportSummaryPdfBtn').addEventListener('click', ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const resumen = document.getElementById('resumenDiv').textContent || 'Resumen vacio';
+  doc.setFontSize(12);
+  doc.text('Resumen Ejecutivo - Analizador de Firmas', 10, 10);
+  doc.setFontSize(10);
+  doc.text(resumen, 10, 20);
+  // agregar lista corta de top clientes
+  const kpiDiv = document.getElementById('kpiDiv');
+  const lines = [];
+  for(let i=0;i<kpiDiv.children.length;i++){
+    const title = kpiDiv.children[i].querySelector('p').textContent;
+    const val = kpiDiv.children[i].querySelector('h2').textContent;
+    lines.push(`${title}: ${val}`);
+  }
+  doc.text(lines, 10, 40);
+  doc.save('Resumen_Firmas.pdf');
+});
+
+/* ---- registry buttons ---- */
+document.getElementById('clearRegistryBtn').addEventListener('click', ()=>{
+  if(!confirm('Eliminar todo el registro local de PDFs procesados?')) return;
+  writeRegistry([]);
+});
+document.getElementById('refreshListBtn').addEventListener('click', updateProcessedUI);
+
+/* ---- dark mode toggle ---- */
+document.getElementById('darkToggle').addEventListener('change', (e)=>{
+  document.body.classList.toggle('dark', e.target.checked);
+});
+
+/* ---- init UI ---- */
+updateProcessedUI();
+renderAll();
+
+/* ---- small: keep charts responsive on window resize ---- */
+window.addEventListener('resize', ()=>{ if(monthlyChart) monthlyChart.resize(); if(doughnutChart) doughnutChart.resize(); if(tiempoChart) tiempoChart.resize(); });
+
+</script>
 </body>
 </html>
+
 
 
