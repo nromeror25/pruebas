@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Impacto Económico: Erbitux® vs Vectibix®</title>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    /* === ESTILOS BASE === */
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f5f7fa;
+      color: #1e293b;
+    }
+
+    h2 {
+      color: #1e3a8a;
+      margin-top: 0;
+    }
+
+    /* === BARRA SUPERIOR === */
+    .navbar {
+      background: linear-gradient(90deg, #0f172a, #1e3a8a, #2563eb);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 30px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 10;
+      height: 65px;
+    }
+
+    .navbar h1 {
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .navbar img {
+      height: 36px;
+    }
+
+    .nav-links a {
+      color: #dbeafe;
+      text-decoration: none;
+      margin-left: 15px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* === HERO BANNER === */
+    .hero {
+      margin-top: 65px;
+      position: relative;
+      height: 340px;
+      background: url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #e0f2fe;
+    }
+
+    /* === CONTENIDO === */
+    .content {
+      padding: 40px 60px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    section {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    /* === SECCIÓN DATOS Y CÁLCULOS === */
+    .datos-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .card {
+      flex: 1;
+      min-width: 260px;
+      background: #f0f4ff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    .card h3 {
+      color: #1e3a8a;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #2563eb;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-top: 6px;
+      color: #334155;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: #f9fafb;
+      margin-top: 3px;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #2563eb;
+      background-color: #eef2ff;
+      box-shadow: 0 0 4px rgba(37,99,235,0.4);
+    }
+
+    .results {
+      background: #eef2ff;
+      border-left: 4px solid #1e3a8a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .btn-calcular {
+      display: block;
+      margin: 25px auto 0;
+      background: linear-gradient(90deg, #1e3a8a, #2563eb);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-calcular:hover {
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* === COMPARATIVOS === */
+    .comparativos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .grafico {
+      flex: 1 1 400px;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 768px) {
+      .content { padding: 20px; }
+      .hero { height: 260px; }
+      .hero h2 { font-size: 1.4rem; }
+    }
+
+
+.story-separator {
+  text-align: center;
+  margin: 60px auto;
+  color: #64748b;
+  font-style: italic;
+  position: relative;
+}
+
+.story-separator::before,
+.story-separator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #cbd5e1;
+}
+
+.story-separator::before { left: 0; }
+.story-separator::after { right: 0; }
+
+.kpi-card {
+  background:white;
+  border-radius:14px;
+  padding:25px;
+  flex:0 1 200px;
+  text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:transform 0.3s;
+}
+
+.kpi-card:hover {
+  transform:scale(1.05);
+}
+
+.kpi-card h3 {
+  color:#1e3a8a;
+  margin-bottom:8px;
+  font-size:1rem;
+}
+
+.kpi-card p {
+  font-size:1.1rem;
+  font-weight:bold;
+  color:#334155;
+}
+
+.kpi-card.destaque {
+  background:linear-gradient(90deg,#1e3a8a,#2563eb);
+  color:white;
+}
+
+.kpi-card.destaque p {
+  color:white;
+}
+
+.kpi-card.destaque h3 {
+  color: white;
+}
+  </style>
+</head>
+<body>
+
+  <!-- === NAVBAR === -->
+  <div class="navbar">
+    <h1><i class="fa-solid fa-chart-column"></i> Comparador Económico</h1>
+    <div class="nav-links">
+      <a href="#intro">Introducción</a>
+<a href="#resultados">Resultados clínicos</a>
+<a href="#calculos">Cálculos</a>
+<a href="#comparacion">Comparación</a>
+    </div>
+  </div>
+
+  <!-- === HERO CORPORATIVO === -->
+ <!-- === STORYTELLING NAV === -->
+<section style="margin-top:65px; background:#f1f5f9; padding:20px 40px; text-align:center; border-bottom:3px solid #1e3a8a;">
+  <h2 style="color:#1e3a8a; font-size:1.4rem; margin-bottom:10px;">Historia del Valor de <b>Erbitux®</b></h2>
+  <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:25px; font-size:0.95rem; color:#334155;">
+    <a href="#intro" style="text-decoration:none; color:inherit;">
+  <i class="fa-solid fa-virus"></i><br><b>1.</b> Desafío clínico
+</a>
+    <a href="#evidencia" style="text-decoration:none; color:inherit;">
+  <i class="fa-solid fa-virus"></i><br><b>2.</b> Evidencia científica
+</a>
+    <a href="#calculos" style="text-decoration:none; color:inherit;">
+  <i class="fa-solid fa-virus"></i><br><b>3.</b> Impacto económico
+</a>
+    <a href="#comparacion" style="text-decoration:none; color:inherit;">
+  <i class="fa-solid fa-virus"></i><br><b>4.</b> Valor para el sistema
+</a>
+    <a href="#conclusion" style="text-decoration:none; color:inherit;">
+  <i class="fa-solid fa-virus"></i><br><b>5.</b> Conclusión
+</a>
+  </div>
+</section>
+
+  <!-- === CONTENIDO === -->
+  <div class="content">
+
+    <!-- INTRODUCCIÓN -->
+    <section id="intro" class="intro">
+      <h2><i class="fa-solid fa-book-open"></i> 🧠 1️⃣ El reto clínico: cáncer colorrectal en Colombia</h2>
+      <p>
+        El cáncer colorrectal representa un desafío sanitario relevante en Colombia. 
+        Cada año se diagnostican más de <b>4.000 casos nuevos</b>, con una mortalidad superior a <b>3.700 personas</b>. 
+        Esta evaluación busca comparar los costos asociados a <b>Erbitux®</b> y <b>Vectibix®</b> bajo condiciones clínicas reales.
+      </p>
+      <div id="graficoEpidemiologia"></div>
+<p style="
+  text-align:center;
+  font-size:0.9rem;
+  color:#475569;
+  margin-top:10px;
+  font-style:italic;
+">
+  Fuente: Cuenta de Alto Costo (2024)
+</p>
+    </section>
+
+<!-- === EVIDENCIA CLÍNICA DESTACADA === -->
+<section id="evidencia" style="margin-top:40px; background:linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color:white; padding:60px 40px; position:relative; overflow:hidden; border-radius:16px;">
+  <div style="position:absolute; inset:0; background:url('https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat; opacity:0.15;"></div>
+  
+  <div style="position:relative; z-index:2; max-width:1100px; margin:auto;">
+    <h2 style="text-align:center; font-size:1.8rem; margin-bottom:20px; color:white;">
+  <i class="fa-solid fa-flask-vial"></i> 🔬 2️⃣ <span style="color:#ffffff;">Evidencia científica: Erbitux® demuestra superioridad clínica y seguridad</span>
+</h2>
+    
+    <p style="text-align:center; font-size:1.05rem; color:#c7d2fe; max-width:850px; margin:auto;">
+      Basado en la presentación <b>“Erbitux® Pioneer of anti-EGFRs” (2025)</b> y estudios clave (CRYSTAL, FIRE-3, CALGB/SWOG 80405, PRIME, BEACON).
+    </p>
+
+    <!-- Tarjetas de Evidencia -->
+    <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; margin-top:40px;">
+      
+      <!-- Tarjeta 1 -->
+      <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
+        <h3 style="color:#1e3a8a;"><i class="fa-solid fa-dna"></i> Superioridad Clínica</h3>
+        <p>🧬 <b>FIRE-3 y CALGB/SWOG 80405</b> demostraron que Erbitux® logra <b>mayor supervivencia global (SG 39.3 meses)</b> en pacientes con tumores <b>RAS wild-type (LS)</b>.</p>
+      </div>
+
+      <!-- Tarjeta 2 -->
+      <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
+        <h3 style="color:#1e3a8a;"><i class="fa-solid fa-user-shield"></i> Perfil de Seguridad</h3>
+        <p>💊 Menor tasa de <b>reacciones cutáneas severas</b> y <b>menor discontinuación del tratamiento</b> en comparación con Vectibix® (Petrelli F. 2018).</p>
+      </div>
+
+      <!-- Tarjeta 3 -->
+      <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
+        <h3 style="color:#1e3a8a;"><i class="fa-solid fa-lungs"></i> Beneficio en Conversión Quirúrgica</h3>
+        <p>🩺 Los pacientes tratados con Erbitux® + quimioterapia mostraron <b>mayor tasa de resección hepática curativa</b> y respuesta tumoral, clave para la conversión a cirugía.</p>
+      </div>
+
+      <!-- Tarjeta 4 -->
+      <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
+        <h3 style="color:#1e3a8a;"><i class="fa-solid fa-syringe"></i> Esquemas Flexibles</h3>
+        <p>⏱ Único anti-EGFR con <b>esquema semanal (QW)</b> y <b>quincenal (Q2W)</b> aprobado, facilitando la integración en múltiples regímenes oncológicos.</p>
+      </div>
+
+      <!-- Tarjeta 5 -->
+      <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
+        <h3 style="color:#1e3a8a;"><i class="fa-solid fa-hand-holding-medical"></i> Recomendación en Guías</h3>
+        <p>📘 Respaldado por <b>ESMO 2025</b> y <b>ASCO 2022</b> como tratamiento estándar para <b>mCRC RAS wt</b> en primera línea (combinado con FOLFOX o FOLFIRI).</p>
+      </div>
+
+    </div>
+
+    <!-- Frase final -->
+    <div style="text-align:center; margin-top:40px; font-style:italic; color:#e0e7ff;">
+      “Erbitux® continúa liderando la evidencia anti-EGFR con más de <b>260 estudios activos</b> en 2025, consolidando su papel como terapia pionera.”
+    </div>
+  </div>
+</section>
+
+<style>
+  #estudios-clinicos {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .estudios-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .burbuja {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    flex: 0 1 280px; /* Ancho mínimo de las burbujas */
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+
+  .burbuja:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  .burbuja h3 {
+    color: #1e3a8a;
+    margin-bottom: 10px;
+  }
+
+  .burbuja p, .burbuja ul {
+    margin: 5px 0;
+    font-size: 0.95rem;
+    color: #334155;
+  }
+
+  .fa-star {
+    color: #ffcc00;
+    margin-right: 5px;
+  }
+</style>
+
+
+  
+<!-- CÁLCULOS -->
+<section id="calculos">
+  <h2><i class="fa-solid fa-scale-balanced"></i> 💰 4️⃣ Comparación de costos y valor para el pagador</h2>
+
+  <div class="datos-container">
+    <div class="card">
+      <h3><i class="fa-solid fa-user"></i> Datos del paciente</h3>
+      <label>Peso (kg)</label>
+      <input type="number" id="peso" value="70">
+      <label>Talla (cm)</label>
+      <input type="number" id="talla" value="170">
+      <label>Cohorte</label>
+      <input type="number" id="numPacientes" value="5">
+    </div>
+
+    <div class="card">
+      <h3><i class="fa-solid fa-capsules"></i> Erbitux®️- Cetuximab</h3>
+      <p>💊 <strong>Presentaciones:</strong> Vial 20 ml / 100 mg y Vial 5 ml / 20 mg</p>
+      <p>ℹ️ <strong>Indicaciones:</strong> Cáncer colorrectal metastásico, carcinoma de cabeza y cuello.</p>
+      <p>📜 <strong>Regulación:</strong> ✔ Circular 19 de 2024</p>
+      <p>✅ <strong>UPC:</strong> ✔ Financiado UPC</p>
+      <label>Dosis (mg/m²)</label>
+      <input type="number" id="dosisErbitux" value="500">
+      <label>Precio vial 100mg (COP)</label>
+      <input type="number" id="precioErb100" value="649000">
+      <label>Contenido por vial (mg)</label>
+      <input type="number" id="contenidoVialErb" value="100">
+      <p id="vialesErb" style="background:#eef2ff; padding:6px 10px; border-radius:6px; font-size:0.9rem; color:#1e3a8a; margin-top:10px;">
+  <b>Viales requeridos:</b> -
+</p>
+      <div class="results" id="resErbitux"></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fa-solid fa-capsules"></i> Vectibix®️ - Panitomumab</h3>
+      <p>💊 <strong>Presentación:</strong> Vial 5 mg/ml (100 mg / 20 ml)</p>
+      <p>ℹ️ <strong>Indicaciones:</strong> Cáncer colorrectal metastásico con RAS no mutado.</p>
+      <p>📜 <strong>Regulación:</strong> ✔ Circular 19 de 2024</p>
+      <p>✅ <strong>UPC:</strong> ✔ Financiado UPC</p>
+      <label>Dosis (mg/kg)</label>
+      <input type="number" id="dosisVectibix" value="6">
+      <label>Precio vial 100mg (COP)</label>
+      <input type="number" id="precioVec100" value="1366796">
+     <p id="vialesVec" style="background:#eef2ff; padding:6px 10px; border-radius:6px; font-size:0.9rem; color:#1e3a8a; margin-top:10px;">
+  <b>Viales requeridos:</b> -
+</p>
+      <div class="results" id="resVectibix"></div>
+    </div>
+  </div>
+
+  <button class="btn-calcular" onclick="calcular()">Calcular</button>
+</section>
+
+
+
+<style>
+  .info {
+    background: #eef2ff;
+    border-left: 4px solid #1e3a8a;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+</style>
+
+
+    <!-- COMPARACIÓN -->
+    <section id="comparacion">
+      <h2><i class="fa-solid fa-scale-balanced"></i> Comparación de Costos</h2>
+      <div class="comparativos">
+        <div class="grafico">
+          <h3>1 paciente (8 meses)</h3>
+          <div id="graficoPaciente"></div>
+        </div>
+        <div class="grafico">
+          <h3>Cohorte (8 meses)</h3>
+          <div id="graficoCohorte"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<!-- === KPIs DINÁMICOS === -->
+<section id="indicadores" style="margin-top:40px; background:#f8fafc; padding:30px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+  <h2 style="color:#1e3a8a; text-align:center;">
+    <i class="fa-solid fa-gauge-high"></i> Indicadores Clave de Valor
+  </h2>
+  <div id="kpi-container" style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-top:30px;">
+    
+    <!-- KPI 1: Costo total -->
+    <div class="kpi-card">
+      <h3>Costo total Erbitux®</h3>
+      <p id="kpi-erbitux">-</p>
+    </div>
+
+    <div class="kpi-card">
+      <h3>Costo total Vectibix®</h3>
+      <p id="kpi-vectibix">-</p>
+    </div>
+
+    <!-- KPI 2: Ahorro -->
+    <div class="kpi-card destaque">
+      <h3>Ahorro estimado</h3>
+      <p id="kpi-ahorro">-</p>
+    </div>
+
+    <!-- KPI 3: SG y eficiencia -->
+    <div class="kpi-card">
+      <h3>SG (meses)</h3>
+      <p><b>Erbitux®:</b> 39.3<br><b>Vectibix®:</b> 23.6</p>
+    </div>
+
+    <div class="kpi-card">
+      <h3>Costo por mes de SG</h3>
+      <p id="kpi-costo-sg">-</p>
+    </div>
+
+  </div>
+</section>
+
+<section style="background:#0f172a; color:white; text-align:center; padding:60px 40px; border-radius:16px; margin-top:60px;">
+  <h2 style="color:#93c5fd;"><i class="fa-solid fa-handshake"></i> 5️⃣ El valor de decidir con evidencia</h2>
+  <p style="max-width:800px; margin:auto; font-size:1.1rem; color:#e2e8f0; line-height:1.6;">
+    Elegir <b>Erbitux®</b> no es solo optar por eficacia clínica, sino por un modelo sostenible de atención oncológica en Colombia.  
+    Su respaldo científico, flexibilidad terapéutica y alineación con la UPC lo convierten en la opción con mejor equilibrio entre <b>valor y costo</b>.  
+  </p>
+  <p style="margin-top:25px; color:#bfdbfe; font-style:italic;">
+    “Evidencia, eficiencia y humanidad en una sola decisión terapéutica.”
+  </p>
+</section>
+
+
+  <!-- === SCRIPTS === -->
+  <script>
+    // Gráfico epidemiología
+    const anios = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
+    const Prevalencia = [38.03, 37.59, 46.33, 52.75, 57.53, 63.03, 80.45];
+    const Mortalidad = [4.04, 3.75, 4.76, 6.03, 5.88, 6.18, 7.04];
+
+    Plotly.newPlot('graficoEpidemiologia', [
+      {x: anios, y: Prevalencia, mode: 'lines+markers', name: 'Prevalencia', line:{color:'#1e3a8a'}},
+      {x: anios, y: Mortalidad, mode: 'lines+markers', name: 'Mortalidad', line:{color:'#e11d48'}}
+    ], {
+      title: 'Tendencias epidemiológicas en Colombia (2018–2024)',
+      xaxis:{title:'Año'},
+      yaxis:{title:'Casos por 100.000 habitantes'},
+      legend:{orientation:'h', y:-0.2}
+    });
+
+    // Cálculos
+    function calcularBSA(peso, talla) {
+      return Math.sqrt((peso * talla) / 3600);
+    }
+
+    function calcular() {
+  const peso = parseFloat(document.getElementById('peso').value);
+  const talla = parseFloat(document.getElementById('talla').value);
+  const numPacientes = parseInt(document.getElementById('numPacientes').value);
+
+  // === Erbitux ===
+  const dosisErb = parseFloat(document.getElementById('dosisErbitux').value);
+  const precioErb100 = parseFloat(document.getElementById('precioErb100').value);
+  const contenidoVialErb = parseFloat(document.getElementById('contenidoVialErb').value);
+  const bsa = Math.sqrt((peso * talla) / 3600);
+  const mgErb = bsa * dosisErb;
+  const vialesErb = Math.ceil(mgErb / contenidoVialErb);
+  const costoErb = vialesErb * precioErb100 * 2 * 8; // cada 2 semanas durante 8 meses
+
+  // === Vectibix ===
+  const dosisVec = parseFloat(document.getElementById('dosisVectibix').value);
+  const precioVec100 = parseFloat(document.getElementById('precioVec100').value);
+  const mgVec = peso * dosisVec;
+  const vialesVec = Math.ceil(mgVec / 100);
+  const costoVec = vialesVec * precioVec100 * 2 * 8;
+
+  // === Mostrar resultados ===
+  document.getElementById('vialesErb').innerHTML = `<b>Viales requeridos:</b> ${vialesErb} por ciclo`;
+  document.getElementById('vialesVec').innerHTML = `<b>Viales requeridos:</b> ${vialesVec} por ciclo`;
+
+  document.getElementById('resErbitux').innerHTML = `<b>Costo total:</b> ${costoErb.toLocaleString()} COP`;
+  document.getElementById('resVectibix').innerHTML = `<b>Costo total:</b> ${costoVec.toLocaleString()} COP`;
+
+  // === KPIs ===
+  const ahorro = costoVec - costoErb;
+  const ahorroPct = ((ahorro / costoVec) * 100).toFixed(1);
+
+  const SG_Erbitux = 39.3;
+  const SG_Vectibix = 23.6;
+  const costoMesErb = costoErb / SG_Erbitux;
+  const costoMesVec = costoVec / SG_Vectibix;
+  const diffCostoMes = costoMesVec - costoMesErb;
+
+  document.getElementById("kpi-erbitux").innerHTML = `${costoErb.toLocaleString()} COP`;
+  document.getElementById("kpi-vectibix").innerHTML = `${costoVec.toLocaleString()} COP`;
+  document.getElementById("kpi-ahorro").innerHTML = `${ahorro.toLocaleString()} COP (${ahorroPct}% ↓)`;
+  document.getElementById("kpi-costo-sg").innerHTML = `
+    <b>Erbitux®:</b> ${costoMesErb.toLocaleString()} COP/mes<br>
+    <b>Vectibix®:</b> ${costoMesVec.toLocaleString()} COP/mes<br>
+    <span style="color:#22c55e;">↓ Ahorro: ${diffCostoMes.toLocaleString()} COP/mes</span>
+  `;
+
+  // === Gráficos ===
+  // === Gráfico: Costo por paciente ===
+Plotly.newPlot('graficoPaciente', [{
+  x: ['Erbitux','Vectibix'],
+  y: [costoErb, costoVec],
+  type: 'bar',
+  text: [costoErb.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}),
+         costoVec.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0})],
+  textposition: 'outside',
+  marker:{color:['#f97316','#1e3a8a']}
+}], {
+  title:'Costo por paciente (8 meses)',
+  yaxis: {title:'COP', showgrid:false},
+  xaxis: {showgrid:false}
+});
+
+// === Gráfico: Costo por cohorte ===
+Plotly.newPlot('graficoCohorte', [{
+  x: ['Erbitux','Vectibix'],
+  y: [costoErb * numPacientes, costoVec * numPacientes],
+  type: 'bar',
+  text: [(costoErb * numPacientes).toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}),
+         (costoVec * numPacientes).toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0})],
+  textposition: 'outside',
+  marker:{color:['#f97316','#1e3a8a']}
+}], {
+  title:`Costo total (${numPacientes} pacientes, 8 meses)`,
+  yaxis: {title:'COP', showgrid:false},
+  xaxis: {showgrid:false}
+});
+
+
+ const sections = document.querySelectorAll("section");
+  const navLinks = document.querySelectorAll(".story-nav a");
+
+  window.addEventListener("scroll", () => {
+    let current = "";
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop - 100;
+      if (scrollY >= sectionTop) {
+        current = section.getAttribute("id");
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.classList.remove("active");
+      if (link.getAttribute("href").includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
+
+}
+
+</script>
+</body>
+</html>
