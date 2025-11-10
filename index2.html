@@ -545,16 +545,7 @@
       <p id="kpi-ahorro">-</p>
     </div>
 
-    <!-- KPI 3: SG y eficiencia -->
-    <div class="kpi-card">
-      <h3>SG (meses)</h3>
-      <p><b>Erbitux®:</b> 39.3<br><b>Vectibix®:</b> 23.6</p>
-    </div>
-
-    <div class="kpi-card">
-      <h3>Costo por mes de SG</h3>
-      <p id="kpi-costo-sg">-</p>
-    </div>
+   
 
   </div>
 </section>
@@ -625,20 +616,12 @@
   const ahorro = costoVec - costoErb;
   const ahorroPct = ((ahorro / costoVec) * 100).toFixed(1);
 
-  const SG_Erbitux = 39.3;
-  const SG_Vectibix = 23.6;
-  const costoMesErb = costoErb / SG_Erbitux;
-  const costoMesVec = costoVec / SG_Vectibix;
-  const diffCostoMes = costoMesVec - costoMesErb;
+  
 
   document.getElementById("kpi-erbitux").innerHTML = `${costoErb.toLocaleString()} COP`;
   document.getElementById("kpi-vectibix").innerHTML = `${costoVec.toLocaleString()} COP`;
   document.getElementById("kpi-ahorro").innerHTML = `${ahorro.toLocaleString()} COP (${ahorroPct}% ↓)`;
-  document.getElementById("kpi-costo-sg").innerHTML = `
-    <b>Erbitux®:</b> ${costoMesErb.toLocaleString()} COP/mes<br>
-    <b>Vectibix®:</b> ${costoMesVec.toLocaleString()} COP/mes<br>
-    <span style="color:#22c55e;">↓ Ahorro: ${diffCostoMes.toLocaleString()} COP/mes</span>
-  `;
+  
 
   // === Gráficos ===
   // === Gráfico: Costo por paciente ===
