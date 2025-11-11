@@ -208,6 +208,26 @@ tbody td{padding:6px;border-bottom:1px solid #F1F5F9;color:#243b53}
   </aside>
 </div>
 
+
+<div class="panel" style="margin-top:16px;">
+  <h3>🔔 Tablero de Alertas de Vigencias</h3>
+  <div class="table-wrap">
+    <table id="alertasTable">
+      <thead>
+        <tr>
+          <th>Archivo</th>
+          <th>Vigencia Final</th>
+          <th>Días restantes</th>
+          <th>Estado</th>
+          <th>Última revisión</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
 <script>
 /* ---------------------------
    Helper & config (editables)
@@ -486,58 +506,108 @@ function renderAll(){
   renderCharts();
   renderTimeline();
   populateFilterOptions();
+
+  renderAlertas();
+
 }
 
 /* ---- (2) KPIs y resumen ---- */
 function renderKPIs() {
-  const kpiDiv = document.getElementById('kpiDiv'); 
-  kpiDiv.innerHTML = '';
+  const kpiDiv = document.getElementById('kpiDiv');
+  kpiDiv.innerHTML = '';
 
-  // Calcular tiempos para otros KPIs
-  const tiempos = firmaRows.map(f => parseFloat(f['Tiempo (hrs)'])).filter(v => !isNaN(v));
-  const uniqueFirmas = [...new Set(firmaRows.map(f => f.Email))];
-  const totalEnvios = Object.keys(envios).length || 1;
-  const totalFirmasUnicas = uniqueFirmas.length;
-  const avgTiempo = tiempos.length ? (tiempos.reduce((a, b) => a + b, 0) / tiempos.length).toFixed(2) : 0;
+  // === 1. KPI por archivo PDF: Fecha Final ===
+  const archivosUnicos = [...new Set(pdfRows.map(r => r['Archivo']))];
+  archivosUnicos.forEach(nombreArchivo => {
+    // Filtrar las filas del mismo archivo
+    const filas = pdfRows.filter(r => r['Archivo'] === nombreArchivo);
+    const fechas = filas.map(row => {
+      const vf = row['Vigencia Final'];
+      if (!vf) return null;
+      const match = vf.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      return match ? new Date(`${match[3]}-${match[2]}-${match[1]}`) : null;
+    }).filter(Boolean);
 
-  // Semaforización de la fecha final del PDF
-  const fechasFinales = pdfRows.map(row => new Date(row['Vigencia Final'])); // Asegúrate de que esta propiedad exista
-  const fechaFinalPDF = fechasFinales.length ? new Date(Math.max(...fechasFinales)) : null; // Obtener la fecha más reciente
+    // Obtener la más reciente
+    const fechaFinal = fechas.length ? new Date(Math.max(...fechas)) : null;
 
-  let semaforoColor = '';
-  if (fechaFinalPDF) {
-    const diffTime = fechaFinalPDF - new Date();
-    const diffDays = diffTime / (1000 * 3600 * 24); // Convertir a días
+    // Calcular semáforo
+    let semaforoColor = '#CBD5E1'; // gris por defecto
+    let etiqueta = 'Sin fecha';
+    if (fechaFinal) {
+      const diffDays = (fechaFinal - new Date()) / (1000 * 3600 * 24);
+      if (diffDays < 30) { semaforoColor = '#D14343'; etiqueta = 'Rojo'; }       // <30 días
+      else if (diffDays < 90) { semaforoColor = '#FFB347'; etiqueta = 'Amarillo'; } // <90 días
+      else { semaforoColor = '#2CA58D'; etiqueta = 'Verde'; }                     // >90 días
+    }
 
-    if (diffDays < 30) {
-      semaforoColor = 'red'; // Menos de un mes
-    } else if (diffDays < 90) {
-      semaforoColor = 'yellow'; // Entre uno y tres meses
-    } else {
-      semaforoColor = 'green'; // Más de tres meses
-    }
-  }
+    // Crear tarjeta de KPI
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    card.style.backgroundColor = semaforoColor;
+    card.innerHTML = `
+      <h2>${fechaFinal ? fechaFinal.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</h2>
+      <p>${nombreArchivo}</p>
+      <p style="font-size:12px; color:#fff; margin-top:6px;">${etiqueta} • Vigencia final</p>
+    `;
+    kpiDiv.appendChild(card);
+  });
 
-  // Crear KPI para la semaforización
-  const semaforoDiv = document.createElement('div');
-  semaforoDiv.className = 'kpi-card';
-  semaforoDiv.style.backgroundColor = semaforoColor; // Cambiar el color de fondo
-  semaforoDiv.innerHTML = `<h2>${fechaFinalPDF ? fechaFinalPDF.toLocaleDateString() : 'N/A'}</h2><p>Fecha Final del PDF</p>`;
-  kpiDiv.appendChild(semaforoDiv);
+  // === 2. KPI de tiempo promedio (global) ===
+  const tiempos = firmaRows.map(f => parseFloat(f['Tiempo (hrs)'])).filter(v => !isNaN(v));
+  const avgTiempo = tiempos.length ? (tiempos.reduce((a, b) => a + b, 0) / tiempos.length).toFixed(2) : 0;
 
-  // KPIs adicionales
-  const kpis = [
-    { title: "Tiempo promedio (hrs)", value: avgTiempo },
-    { title: "% Firmas completadas", value: ((totalFirmasUnicas / totalEnvios) * 100).toFixed(1) + "%" },
-    { title: "Total productos", value: pdfRows.length }
-  ];
+  const kpis = [
+    { title: "Tiempo promedio (hrs)", value: avgTiempo },
+    { title: "Total productos", value: pdfRows.length }
+  ];
 
-  kpis.forEach(k => {
-    const div = document.createElement('div'); 
-    div.className = 'kpi-card';
-    div.innerHTML = `<h2>${k.value}</h2><p>${k.title}</p>`;
-    kpiDiv.appendChild(div);
-  });
+  kpis.forEach(k => {
+    const div = document.createElement('div');
+    div.className = 'kpi-card';
+    div.innerHTML = `<h2>${k.value}</h2><p>${k.title}</p>`;
+    kpiDiv.appendChild(div);
+  });
+}
+function renderAlertas() {
+  const tbody = document.querySelector("#alertasTable tbody");
+  tbody.innerHTML = "";
+
+  // Agrupar PDFs únicos
+  const archivosUnicos = [...new Set(pdfRows.map(r => r['Archivo']))];
+
+  archivosUnicos.forEach(nombreArchivo => {
+    const filas = pdfRows.filter(r => r['Archivo'] === nombreArchivo);
+    const fechas = filas.map(row => {
+      const vf = row['Vigencia Final'];
+      if (!vf) return null;
+      const m = vf.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      return m ? new Date(`${m[3]}-${m[2]}-${m[1]}`) : null;
+    }).filter(Boolean);
+
+    const fechaFinal = fechas.length ? new Date(Math.max(...fechas)) : null;
+    if (!fechaFinal) return;
+
+    const hoy = new Date();
+    const diffDays = Math.round((fechaFinal - hoy) / (1000 * 3600 * 24));
+    let estado = "—";
+    let color = "#94a3b8"; // gris
+
+    if (diffDays < 0) { estado = "Vencido"; color = "#ef4444"; }
+    else if (diffDays < 30) { estado = "Urgente"; color = "#dc2626"; }
+    else if (diffDays < 90) { estado = "Próximo"; color = "#facc15"; }
+    else { estado = "Vigente"; color = "#16a34a"; }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${nombreArchivo}</td>
+      <td>${fechaFinal.toLocaleDateString('es-CO')}</td>
+      <td>${diffDays >= 0 ? diffDays : 0}</td>
+      <td style="font-weight:600; color:${color}">${estado}</td>
+      <td>${hoy.toLocaleDateString('es-CO')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 
@@ -693,12 +763,15 @@ document.getElementById('darkToggle').addEventListener('change', (e)=>{
 updateProcessedUI();
 renderAll();
 
+
 /* ---- small: keep charts responsive on window resize ---- */
 window.addEventListener('resize', ()=>{ if(monthlyChart) monthlyChart.resize(); if(doughnutChart) doughnutChart.resize(); if(tiempoChart) tiempoChart.resize(); });
 
 </script>
 </body>
 </html>
+
+
 
 
 
