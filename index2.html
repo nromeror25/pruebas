@@ -581,7 +581,7 @@ function validarPeso() {
 
     Plotly.newPlot('graficoEpidemiologia', [
       {x: anios, y: Prevalencia, mode: 'lines+markers', name: 'Prevalencia', line:{color:'#1e3a8a'}},
-      {x: anios, y: Mortalidad, mode: 'lines+markers', name: 'Mortalidad', line:{color:'#e11d48'}}
+      {x: anios, y: Mortalidad, mode: 'lines+markers', name: 'Mortalidad', line:{color:'#e11d48'}},
       {x: anios, y: PCNR, mode: 'lines+markers', name: 'PCNR', line:{color:'#9333ea'}} // Agregar PCNR
     ], {
       title: 'Tendencias epidemiológicas en Colombia (2018–2024)',
