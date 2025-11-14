@@ -342,7 +342,7 @@
 </h2>
     
     <p style="text-align:center; font-size:1.05rem; color:#c7d2fe; max-width:850px; margin:auto;">
-      Basado en la presentación <b>“Erbitux® Pioneer of anti-EGFRs” (2025)</b> y estudios clave (CRYSTAL, FIRE-3, CALGB/SWOG 80405, PRIME, BEACON).
+      Basado en la presentación <b>“Erbitux® Pioneer of anti-EGFRs” (2025)</b> y estudios clave (CRYSTAL, FIRE-3, CALGB/SWOG 80405 y PRIME).
     </p>
 
     <!-- Tarjetas de Evidencia -->
@@ -360,11 +360,7 @@
         <p>💊 Menor tasa de <b>reacciones cutáneas severas</b> y <b>menor discontinuación del tratamiento</b> en comparación con Vectibix® (Petrelli F. 2018).</p>
       </div>
 
-      <!-- Tarjeta 3 -->
-      <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
-        <h3 style="color:#1e3a8a;"><i class="fa-solid fa-lungs"></i> Beneficio en Conversión Quirúrgica</h3>
-        <p>🩺 Los pacientes tratados con Erbitux® + quimioterapia mostraron <b>mayor tasa de resección hepática curativa</b> y respuesta tumoral, clave para la conversión a cirugía.</p>
-      </div>
+      
 
       <!-- Tarjeta 4 -->
       <div style="background:#f8fafc; color:#1e293b; border-radius:14px; padding:25px; flex:0 1 280px; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.3s;">
@@ -445,11 +441,14 @@
     <div class="card">
       <h3><i class="fa-solid fa-user"></i> Datos del paciente</h3>
       <label>Peso (kg)</label>
-      <input type="number" id="peso" value="70">
+      <input type="number" id="peso" value="70"oninput="validarPeso()">
       <label>Talla (cm)</label>
       <input type="number" id="talla" value="170">
       <label>Cohorte</label>
       <input type="number" id="numPacientes" value="5">
+      <p style="margin-top: 10px;">
+        Según estudios recientes, el peso promedio de los pacientes con cáncer colorrectal es de aproximadamente <b>70 kg</b> y la talla promedio es de <b>170 cm</b>. Estos valores son representativos de la población estudiada y pueden ser útiles para el cálculo de dosis y evaluación de tratamientos.
+    </p>
     </div>
 
     <div class="card">
@@ -564,14 +563,26 @@
 
   <!-- === SCRIPTS === -->
   <script>
+
+function validarPeso() {
+    const pesoInput = document.getElementById('peso');
+    const peso = parseFloat(pesoInput.value);
+    
+    if (peso < 67) {
+        alert("El peso no puede ser menor a 67 kg.");
+        pesoInput.value = 67; // Restablecer el valor a 67 kg
+    }
+}
     // Gráfico epidemiología
     const anios = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
     const Prevalencia = [38.03, 37.59, 46.33, 52.75, 57.53, 63.03, 80.45];
     const Mortalidad = [4.04, 3.75, 4.76, 6.03, 5.88, 6.18, 7.04];
+    const PCNR = [6.36, 4.51, 6.81, 6.40, 7.54, 8.64, 7.95]; // Datos de PCNR
 
     Plotly.newPlot('graficoEpidemiologia', [
       {x: anios, y: Prevalencia, mode: 'lines+markers', name: 'Prevalencia', line:{color:'#1e3a8a'}},
       {x: anios, y: Mortalidad, mode: 'lines+markers', name: 'Mortalidad', line:{color:'#e11d48'}}
+      {x: anios, y: PCNR, mode: 'lines+markers', name: 'PCNR', line:{color:'#9333ea'}} // Agregar PCNR
     ], {
       title: 'Tendencias epidemiológicas en Colombia (2018–2024)',
       xaxis:{title:'Año'},
