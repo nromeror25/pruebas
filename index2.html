@@ -567,28 +567,63 @@
 
   <section id="referencias" style="margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 12px;">
     <h2 style="color: #1e3a8a; text-align: center;">Referencias Bibliográficas</h2>
-    <ol style="margin-left: 20px;">
-        <li>
-            <b>Estudio CRYSTAL:</b> Van Cutsem, E., et al. (2011). "Cetuximab and chemotherapy as initial treatment for metastatic colorectal cancer." <i>New England Journal of Medicine</i>, 364(23), 2311-2321.
-        </li>
-        <li>
-            <b>Estudio FIRE-3:</b> Heinemann, V., et al. (2014). "FOLFIRI plus cetuximab versus FOLFIRI plus bevacizumab in patients with metastatic colorectal cancer." <i>Journal of Clinical Oncology</i>, 32(5), 402-410.
-        </li>
-        <li>
-            <b>Estudio CALGB/SWOG 80405:</b> Grothey, A., et al. (2013). "Effect of bevacizumab on survival in patients with metastatic colorectal cancer." <i>Journal of Clinical Oncology</i>, 31(20), 2499-2506.
-        </li>
-        <li>
-            <b>Revisión sobre Erbitux:</b> Cunningham, D., et al. (2004). "Cetuximab monotherapy for the treatment of colorectal cancer." <i>Clinical Colorectal Cancer</i>, 4(1), 24-30.
-        </li>
-        <li>
-            <b>Guías ESMO:</b> Van Cutsem, E., et al. (2020). "ESMO Guidelines for the management of metastatic colorectal cancer." <i>Annals of Oncology</i>, 31(9), 1291-1305.
-        </li>
-        <li>
-            <b>Guías ASCO:</b> National Comprehensive Cancer Network. (2021). "NCCN Clinical Practice Guidelines in Oncology: Colon Cancer."
-        </li>
-    </ol>
+    <div class="estudios-container">
+        <div class="burbuja">
+            <h3><i class="fa-solid fa-file-pdf"></i> Estudio CRYSTAL</h3>
+            <p>Van Cutsem, E., et al. (2011). "Cetuximab and chemotherapy as initial treatment for metastatic colorectal cancer." <i>New England Journal of Medicine</i>, 364(23), 2311-2321.</p>
+            <a href="link_a_estudio_crystal.pdf" class="btn-descarga">Descargar PDF</a>
+        </div>
+        <div class="burbuja">
+            <h3><i class="fa-solid fa-file-pdf"></i> Estudio FIRE-3</h3>
+            <p>Heinemann, V., et al. (2014). "FOLFIRI plus cetuximab versus FOLFIRI plus bevacizumab in patients with metastatic colorectal cancer." <i>Journal of Clinical Oncology</i>, 32(5), 402-410.</p>
+            <a href="link_a_estudio_fire3.pdf" class="btn-descarga">Descargar PDF</a>
+        </div>
+        <div class="burbuja">
+            <h3><i class="fa-solid fa-file-pdf"></i> Estudio CALGB/SWOG 80405</h3>
+            <p>Grothey, A., et al. (2013). "Effect of bevacizumab on survival in patients with metastatic colorectal cancer." <i>Journal of Clinical Oncology</i>, 31(20), 2499-2506.</p>
+            <a href="link_a_estudio_calgb.pdf" class="btn-descarga">Descargar PDF</a>
+        </div>
+        <!-- Agrega más burbujas según sea necesario -->
+    </div>
 </section>
+<style>
+    .estudios-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
 
+    .burbuja {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        flex: 0 1 280px; /* Ancho mínimo de las burbujas */
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+
+    .burbuja:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-descarga {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 10px 20px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+
+    .btn-descarga:hover {
+        background: #1e3a8a;
+    }
+</style>
 
   <!-- === SCRIPTS === -->
   <script>
