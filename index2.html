@@ -458,7 +458,11 @@
       <h3><i class="fa-solid fa-capsules"></i> Erbitux®️- Cetuximab</h3>
       <p>💊 <strong>Presentaciones:</strong> Vial (5mg/ml) 20 ml / 100 mg y Vial 100 ml / 500 mg</p>
       <p>ℹ️ <strong>Indicaciones:</strong> Cáncer colorrectal metastásico, carcinoma de cabeza y cuello.</p>
-      <p>⏱️ <strong>Aplicación:</strong> Cada 15 días (bisemanal) o semanal</p>
+      <p>
+  ⏱️ <strong>Aplicación:</strong> 
+  <span style="color:#1e3a8a; font-weight:bold;">Cada 15 días (bisemanal)</span> 
+  o semanal
+</p>
       <p>📜 <strong>Regulación:</strong> ✔ Circular 19 de 2024</p>
       <p>✅ <strong>UPC:</strong> ✔ Financiado UPC</p>
       <label>Dosis (mg/m²)</label>
@@ -477,7 +481,7 @@
       <h3><i class="fa-solid fa-capsules"></i> Vectibix®️ - Panitumumab</h3>
       <p>💊 <strong>Presentación:</strong> Vial 5 mg/ml (100 mg / 20 ml)</p>
       <p>ℹ️ <strong>Indicaciones:</strong> Cáncer colorrectal metastásico con RAS no mutado.</p>
-      <p>⏱️ <strong>Dosis Tiempo:</strong> Cada 15 días.</p>
+      <p>⏱️ <strong>Aplicación:</strong> Cada 15 días.</p>
       <p>📜 <strong>Regulación:</strong> ✔ Circular 19 de 2024</p>
       <p>✅ <strong>UPC:</strong> ✔ Financiado UPC</p>
       <label>Dosis (mg/kg)</label>
@@ -712,13 +716,16 @@
 
 function validarPeso() {
     const pesoInput = document.getElementById('peso');
-    if (!pesoInput.value) return; 
+
+    // Si el campo está vacío, no validar aún
+    if (!pesoInput.value) return;
 
     const peso = parseFloat(pesoInput.value);
-    
-    if (!isNAN(peso)&& peso < 67) {
+
+    // isNaN estaba mal escrito como isNAN
+    if (!isNaN(peso) && peso < 67) {
         alert("El peso no puede ser menor a 67 kg.");
-        pesoInput.value = 67; // Restablecer el valor a 67 kg
+        pesoInput.value = 67; 
     }
 }
     // Gráfico epidemiología
@@ -790,7 +797,7 @@ Plotly.newPlot('graficoPaciente', [{
   type: 'bar',
   text: [costoErb.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}),
          costoVec.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0})],
-  textposition: 'outside',
+  textposition: 'auto',
   marker:{color:['#f97316','#1e3a8a']}
 }], {
   title:'Costo por paciente (8 meses)',
